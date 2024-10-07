@@ -1,0 +1,2 @@
+2024-10-07 14:43:25 - INFO - User connected with IP: 192.168.1.100
+2024-10-07 14:43:25 - ERROR - Error occurred: Connection timeout
