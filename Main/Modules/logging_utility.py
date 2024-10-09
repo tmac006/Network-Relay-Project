@@ -42,10 +42,16 @@ def _write_log(message, level=logging.INFO):
         
         logger.addHandler(handler)
         
-        if level == logging.INFO:
+        if level == logging.DEBUG:
+            logger.debug(message)
+        elif level == logging.INFO:
             logger.info(message)
+        elif level == logging.WARNING:
+            logger.warning(message)
         elif level == logging.ERROR:
             logger.error(message)
+        elif level == logging.CRITICAL:
+            logger.critical(message)
         
         logger.removeHandler(handler)
         handler.close()
@@ -106,6 +112,30 @@ def parse_log_types(log_types_str):
     
     return log_types
 
+def test_log_levels():
+    """
+    Logs messages at all different log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL).
+    This is useful to test whether each log level is being correctly handled.
+    """
+    print("\n--- Testing All Log Levels ---")
+    
+    _write_log("This is a DEBUG message", level=logging.DEBUG)
+    _write_log("This is an INFO message", level=logging.INFO)
+    _write_log("This is a WARNING message", level=logging.WARNING)
+    _write_log("This is an ERROR message", level=logging.ERROR)
+    _write_log("This is a CRITICAL message", level=logging.CRITICAL)
+    
+    print("All log levels tested. Check the log file to verify the output.\n")
+
+# Simulate some log events for testing purposes
+def simulate_log_events():
+    print("\n--- Simulating Log Events ---")
+    log_connection("192.168.1.100")
+    log_received("Test data")
+    log_reset()
+    log_boot()
+    log_error("Simulated error")
+
 # Test harness function to simulate log events and accept command-line input
 def main():
     parser = argparse.ArgumentParser(description="Configure network relay logging.")
@@ -131,6 +161,7 @@ def main():
         help='Log types to enable (e.g., connection, received, reset, boot, error)'
     )
     
+    # Parse the arguments
     args = parser.parse_args()
     
     # Parse log level and log types
@@ -140,13 +171,11 @@ def main():
     # Configure logging based on parsed arguments
     configure_logging(log_file=args.log_file, log_level=log_level, log_types=log_types)
     
-    # Simulate logging actions (these are just for testing purposes)
-    log_connection("192.168.1.100")
-    log_received("Received test data")
-    log_reset()
-    log_boot()
-    log_error("Connection timeout")
+    # Test all log levels
+    test_log_levels()
 
-# Entry point when running this script directly
+    # Simulate some logging events
+    simulate_log_events()
+
 if __name__ == "__main__":
     main()
