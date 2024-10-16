@@ -43,7 +43,7 @@ def log_message(log_type: LogType, message: str):
         elif log_type == LogType.CRITICAL:
             logging.critical(message)
 
-# Example usage (You can remove this in production)
+
 if __name__ == "__main__":
     log_message(LogType.INFO, "This is an informational message.")
     log_message(LogType.ERROR, "This is an error message.")
