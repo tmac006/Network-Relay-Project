@@ -5,14 +5,14 @@ from threading import Thread
 # GPIO setup
 GPIO.setmode(GPIO.BCM)
 relay_pins = {
-    1: 17,  #example
-    2: 27,  
+    1: 17,  # Example: Relay 1 connected to GPIO pin 17
+    2: 27,  # Relay 2 connected to GPIO pin 27, and so on
 }
 for pin in relay_pins.values():
     GPIO.setup(pin, GPIO.OUT)
     GPIO.output(pin, GPIO.LOW)  # Default all relays to OFF
 
-# Storing Relay Config
+# Dictionary to store relay configurations
 relays = {
     1: {
         'mode': 'NONE',
@@ -101,24 +101,3 @@ def configure_timer_mode(relay_num, on_time, off_time):
 # Cleanup GPIO on exit
 def cleanup_gpio():
     GPIO.cleanup()
-
-# Example usage
-if __name__ == "__main__":
-    try:
-        # Set relay 1 to Ping mode
-        configure_ping_mode(1, interval=10, missed=3, reset=5)
-
-        # Set relay 2 to Timer mode
-        configure_timer_mode(2, on_time="06:00", off_time="18:00")
-
-        # Set relay 1 initial state to ON
-        set_initial_state(1, 'ON')
-
-        # Manually turn relay 2 ON
-        set_relay_state(2, 'ON')
-
-        time.sleep(60)  # Keep running for a while to monitor behavior
-    except KeyboardInterrupt:
-        print("Shutting down...")
-    finally:
-        cleanup_gpio()
