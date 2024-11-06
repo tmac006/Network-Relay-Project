@@ -1,103 +1,57 @@
+import PiRelay
 import time
-import RPi.GPIO as GPIO
-from threading import Thread
 
-# GPIO setup
-GPIO.setmode(GPIO.BCM)
-relay_pins = {
-    1: 17,  # Example: Relay 1 connected to GPIO pin 17
-    2: 27,  # Relay 2 connected to GPIO pin 27, and so on
-}
-for pin in relay_pins.values():
-    GPIO.setup(pin, GPIO.OUT)
-    GPIO.output(pin, GPIO.LOW)  # Default all relays to OFF
+# Initialize relays
+relay1 = PiRelay.Relay("RELAY1")
+relay2 = PiRelay.Relay("RELAY2")
+relay3 = PiRelay.Relay("RELAY3")
+relay4 = PiRelay.Relay("RELAY4")
 
-# Dictionary to store relay configurations
-relays = {
-    1: {
-        'mode': 'NONE',
-        'ping': {'interval': 0, 'missed': 0, 'reset': 0, 'missed_count': 0},
-        'timer': {'on_time': None, 'off_time': None},
-        'state': 'OFF',  # Current state of the relay
-        'init_state': 'OFF'  # Initial state after reset/reboot
-    },
-    2: {
-        'mode': 'NONE',
-        'ping': {'interval': 0, 'missed': 0, 'reset': 0, 'missed_count': 0},
-        'timer': {'on_time': None, 'off_time': None},
-        'state': 'OFF',
-        'init_state': 'OFF'
-    }
-}
-
-# Function to handle ping monitoring in a separate thread
-def ping_monitor(relay_num):
-    config = relays[relay_num]['ping']
-    while config['interval'] > 0:
-        print(f"Pinging for Relay {relay_num}...")
-        config['missed_count'] += 1  # Simulate ping failure for demo purposes
-        print(f"Missed Pings: {config['missed_count']} / {config['missed']}")
-
-        if config['missed_count'] >= config['missed']:
-            toggle_relay(relay_num, 'RESET', config['reset'])
-            config['missed_count'] = 0  # Reset missed ping count after toggle
-
-        time.sleep(config['interval'])
-
-# Function to handle relay toggling
-def toggle_relay(relay_num, mode='MANUAL', reset_duration=0):
-    current_state = relays[relay_num]['state']
-    new_state = 'OFF' if current_state == 'ON' else 'ON'
-
-    # Update GPIO state
-    GPIO.output(relay_pins[relay_num], GPIO.HIGH if new_state == 'ON' else GPIO.LOW)
-    relays[relay_num]['state'] = new_state
-    print(f"Relay {relay_num} toggled {mode}: {new_state}")
-
-    if reset_duration > 0:  # If reset_duration is provided, toggle back after a delay
-        time.sleep(reset_duration)
-        GPIO.output(relay_pins[relay_num], GPIO.HIGH if current_state == 'ON' else GPIO.LOW)
-        relays[relay_num]['state'] = current_state
-        print(f"Relay {relay_num} reset back to {current_state} after {reset_duration} seconds")
-
-# Function to manually control relay (ON/OFF)
-def set_relay_state(relay_num, state):
-    if state.upper() == 'ON':
-        relays[relay_num]['state'] = 'ON'
-        GPIO.output(relay_pins[relay_num], GPIO.HIGH)
-        print(f"Relay {relay_num} turned ON")
-    elif state.upper() == 'OFF':
-        relays[relay_num]['state'] = 'OFF'
-        GPIO.output(relay_pins[relay_num], GPIO.LOW)
-        print(f"Relay {relay_num} turned OFF")
+# Functions to toggle each relay and print status
+def toggle_relay(relay, relay_num):
+    if relay.status() == "OFF":
+        relay.on()
+        print(f"Relay {relay_num} is now ON")
     else:
-        print("ERROR: Invalid state")
+        relay.off()
+        print(f"Relay {relay_num} is now OFF")
 
-# Function to set initial state of relays
-def set_initial_state(relay_num, state):
-    relays[relay_num]['init_state'] = state
-    GPIO.output(relay_pins[relay_num], GPIO.HIGH if state == 'ON' else GPIO.LOW)
-    print(f"Relay {relay_num} initial state set to {state}")
+# Control loop for relay operations
+while True:
+    print("\nRelay Control Menu:")
+    print("1. Toggle Relay 1")
+    print("2. Toggle Relay 2")
+    print("3. Toggle Relay 3")
+    print("4. Toggle Relay 4")
+    print("5. Turn all relays ON")
+    print("6. Turn all relays OFF")
+    print("0. Exit")
+    choice = input("Enter your choice: ")
 
-# Function to configure relay in Ping mode
-def configure_ping_mode(relay_num, interval, missed, reset):
-    relays[relay_num]['mode'] = 'PING'
-    relays[relay_num]['ping'] = {
-        'interval': interval,
-        'missed': missed,
-        'reset': reset,
-        'missed_count': 0
-    }
-    print(f"Relay {relay_num} configured for Ping mode")
-    # Start ping monitoring thread
-    Thread(target=ping_monitor, args=(relay_num,)).start()
+    if choice == "1":
+        toggle_relay(relay1, 1)
+    elif choice == "2":
+        toggle_relay(relay2, 2)
+    elif choice == "3":
+        toggle_relay(relay3, 3)
+    elif choice == "4":
+        toggle_relay(relay4, 4)
+    elif choice == "5":
+        relay1.on()
+        relay2.on()
+        relay3.on()
+        relay4.on()
+        print("All relays are now ON")
+    elif choice == "6":
+        relay1.off()
+        relay2.off()
+        relay3.off()
+        relay4.off()
+        print("All relays are now OFF")
+    elif choice == "0":
+        print("Exiting relay control.")
+        break
+    else:
+        print("Invalid choice, please try again.")
 
-# Function to configure relay in Timer mode
-def configure_timer_mode(relay_num, on_time, off_time):
-    relays[relay_num]['mode'] = 'TIMER'
-    relays[relay_num]['timer'] = {'on_time': on_time, 'off_time': off_time}
-    print(f"Relay {relay_num} configured for Timer mode")
-
-# Cleanup GPIO on exit
-def cleanup_gpio():
-    GPIO.cleanup()
+    time.sleep(0.5)  # Brief delay for readability
